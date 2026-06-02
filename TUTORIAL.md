@@ -75,6 +75,46 @@ mkdir -p databases
 #   - silva_species_assignment_v138.2.fa.gz
 ```
 
+### O Sistema de Gerenciamento de Filas (SLURM)
+
+Como o processamento inicial de bioinformática (FastQC, MultiQC e Cutadapt) exige alto poder computacional, ele é executado no servidor utilizando o gerenciador de recursos **SLURM**. 
+
+O SLURM gerencia o uso compartilhado do hardware (CPU, memória e armazenamento) entre todos os usuários, garantindo que o servidor não sofra sobrecargas.
+
+#### Comandos essenciais do SLURM:
+
+1. **Submeter um script de processamento**:
+   ```bash
+   sbatch scripts/meu_script.sh
+   ```
+2. **Acompanhar o status das tarefas em execução ou na fila**:
+   ```bash
+   # Listar todas as tarefas ativas no servidor
+   squeue
+   
+   # Listar apenas as suas tarefas ativas
+   squeue -u $USER
+   ```
+3. **Cancelar uma tarefa enviada por engano**:
+   ```bash
+   scancel <JOB_ID>
+   ```
+4. **Verificar o estado das partições (filas) do cluster**:
+   ```bash
+   sinfo
+   ```
+
+#### Estrutura do cabeçalho dos scripts SLURM:
+Nossos scripts Bash (`scripts/*.sh`) contêm diretivas especiais `#SBATCH` no início. Elas informam ao gerenciador os recursos necessários:
+* `#SBATCH --partition=short`: Envia a tarefa para a fila rápida `short` (limite de 1 dia de execução).
+* `#SBATCH --cpus-per-task=4`: Solicita 4 núcleos de processamento paralelos para acelerar a execução (ex: threads no FastQC/Cutadapt).
+* `#SBATCH --mem=8G`: Reserva 8 Gigabytes de memória RAM para que o programa não sofra interrupção por falta de memória.
+* `#SBATCH --output=logs/...`: Define onde salvar as saídas de texto e relatórios gerados pelos programas.
+
+> **💡 Informações e FAQ do Servidor:**  
+> Para consultar limites de tempo das partições, configurações físicas do cluster e outras informações práticas do servidor utilizado em aula, acesse a página de FAQ oficial:  
+> 🔗 **[FAQ do Servidor Biotec02](http://biotec02.esalq.usp.br:59080/faq.html)**
+
 ---
 
 ## Estrutura de diretórios esperada (antes da análise)
