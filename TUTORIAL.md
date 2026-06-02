@@ -80,26 +80,34 @@ mkdir -p databases
 ## Estrutura de diretórios esperada (antes da análise)
 
 ```
-S813_aulaBiotec26/
+LZT0693/
 ├── data/
 │   ├── S813_16Sv3v4_01/          # Amostra 01 (R1 + R2 .fastq.gz)
-│   ├── S813_16Sv3v4_02/
-│   ├── S813_16Sv3v4_03/
-│   ├── S813_16Sv3v4_04/
-│   ├── S813_16Sv3v4_05/
-│   ├── S813_16Sv3v4_06/
-│   ├── S813_16Sv3v4_07/
+│   ├── ...                       # Demais amostras
 │   └── S813_16Sv3v4_NN/          # Controle negativo
-├── results/                       # Resultados (criados durante a análise)
+├── results/                       # Criado dinamicamente durante a análise
 ├── scripts/                       # Scripts SLURM (.sh) e R (.R)
 │   └── microbiome_tutorial.R     # Script R unificado (DADA2 + Diversidade)
-├── databases/                     # Banco SILVA
+├── databases/                     # Criado manualmente para o banco SILVA
 │   ├── silva_nr99_v138.2_train_set.fa.gz
 │   └── silva_species_assignment_v138.2.fa.gz
 ├── metadata.csv
 ├── TUTORIAL.md
 └── README.md
 ```
+
+### Como criar a estrutura de pastas?
+
+O pipeline foi projetado para ser muito simples, combinando criação manual e dinâmica:
+
+1. **Pastas criadas MANUALMENTE** (você deve criar no terminal antes de iniciar):
+   - A pasta `data/` com os dados brutos já deve estar disponível.
+   - As pastas `scripts/` e `databases/` devem ser criadas por você no terminal Linux com o comando:
+     ```bash
+     mkdir -p scripts databases
+     ```
+2. **Pastas criadas DINAMICAMENTE/AUTOMATICAMENTE** (durante as etapas):
+   - A pasta principal `results/` e todas as suas subpastas (`results/fastqc/`, `results/multiqc/`, `results/cutadapt/` e `results/dada2/`) são criadas **automaticamente** pelas instruções internas dos scripts. Os comandos `mkdir -p` no Bash e `dir.create(..., recursive = TRUE)` no R garantem que o pipeline prepare o ambiente sozinho enquanto roda.
 
 ---
 
@@ -816,7 +824,7 @@ cat(">> Resultados salvos em:", dada2_dir, "\n")
 ## Estrutura de diretórios esperada (após a análise)
 
 ```
-S813_aulaBiotec26/
+LZT0693/
 ├── data/
 │   ├── S813_16Sv3v4_01/
 │   │   ├── S813_16Sv3v4_01_S83_L001_R1_001.fastq.gz
