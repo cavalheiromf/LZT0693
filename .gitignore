@@ -1,0 +1,35 @@
+# Dados brutos de sequenciamento (muito grandes)
+data/
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fastq.tar.gz
+
+# Bancos de dados de referência taxonômica
+databases/
+*.fa
+*.fa.gz
+*.fasta
+*.fasta.gz
+
+# Resultados intermediários pesados
+results/fastqc/
+results/multiqc/
+results/cutadapt/
+results/dada2/filtered/
+
+# R/RStudio arquivos temporários e logs
+.Rhistory
+.RData
+.Rproj.user/
+logs/
+*.log
+*.out
+*.err
+
+# Renderização do Quarto
+.quarto/
+_book/
+_site/
+TUTORIAL.html

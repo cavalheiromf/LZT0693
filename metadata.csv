@@ -1,0 +1,9 @@
+sample_id,sample_name,group,treatment,replicate,description
+S813_16Sv3v4_01,Amostra_01,EDITAR,EDITAR,1,Descrever a amostra aqui
+S813_16Sv3v4_02,Amostra_02,EDITAR,EDITAR,2,Descrever a amostra aqui
+S813_16Sv3v4_03,Amostra_03,EDITAR,EDITAR,3,Descrever a amostra aqui
+S813_16Sv3v4_04,Amostra_04,EDITAR,EDITAR,1,Descrever a amostra aqui
+S813_16Sv3v4_05,Amostra_05,EDITAR,EDITAR,2,Descrever a amostra aqui
+S813_16Sv3v4_06,Amostra_06,EDITAR,EDITAR,3,Descrever a amostra aqui
+S813_16Sv3v4_07,Amostra_07,EDITAR,EDITAR,1,Descrever a amostra aqui
+S813_16Sv3v4_NN,Controle_Negativo,Controle,Nenhum,NA,Controle negativo de extração/PCR
