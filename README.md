@@ -6,10 +6,19 @@ Este repositório contém os dados brutos e o pipeline de análise de sequenciam
 
 O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultando em 8 bibliotecas: 7 amostras biológicas e 1 controle negativo.
 
+## Como Clonar / Baixar este Repositório
+
+Para clonar este repositório no terminal do servidor, execute:
+
+```bash
+git clone https://github.com/cavalheiromf/LZT0693.git
+cd LZT0693
+```
+
 ## Estrutura do repositório
 
 ```
-S813_aulaBiotec26/
+LZT0693/
 ├── data/                          # Dados brutos (FASTQ)
 │   ├── S813_16Sv3v4_01/           # Amostra 01 (R1 + R2)
 │   ├── ...                        # Demais amostras
@@ -54,8 +63,8 @@ O pipeline completo está descrito em detalhes no arquivo [`TUTORIAL.md`](TUTORI
 
 - **R** ≥ 4.3 com os pacotes: `dada2`, `phyloseq`, `vegan`, `ggplot2`, `pheatmap`
 - **Cutadapt** 5.2 (via `module load Bio/Cutadapt/5.2`)
-- **FastQC** 0.12.1 (via `module load Bio/FastQC/0.12.1`) — já executado
-- **MultiQC** 1.33 (via `module load Bio/MultiQC/1.33`) — já executado
+- **FastQC** 0.12.1 (via `module load Bio/FastQC/0.12.1`)
+- **MultiQC** 1.33 (via `module load Bio/MultiQC/1.33`)
 - Acesso ao cluster SLURM para submissão dos scripts bash
 
 ## Como começar
@@ -71,4 +80,4 @@ O pipeline completo está descrito em detalhes no arquivo [`TUTORIAL.md`](TUTORI
 
 ## Licença
 
-Material didático para uso interno no curso de Biotecnologia.
+Material didático para uso interno no curso de Iniciação Científica em Biotecnologia - LZT0693.

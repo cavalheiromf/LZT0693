@@ -24,6 +24,7 @@
 5. [Construção do objeto phyloseq](#5-construção-do-objeto-phyloseq)
 6. [Diversidade Alfa](#6-diversidade-alfa)
 7. [Diversidade Beta (Bray-Curtis)](#7-diversidade-beta-bray-curtis)
+8. [Composição Taxonômica (Abundância Relativa)](#8-composição-taxonômica-abundância-relativa)
 
 ---
 
@@ -62,18 +63,9 @@ install.packages(c("ggplot2", "vegan", "pheatmap", "reshape2", "gridExtra"))
 
 ### Banco de dados taxonômico
 
-Baixe o banco SILVA formatado para o DADA2:
-
-```bash
-# Criar diretório para o banco
-mkdir -p databases
-
-# Download do SILVA v138.2 (ou versão mais recente)
-# Acesse: https://zenodo.org/records/4587955
-# Arquivos necessários:
-#   - silva_nr99_v138.2_train_set.fa.gz
-#   - silva_species_assignment_v138.2.fa.gz
-```
+O banco SILVA formatado para o DADA2 está disponível diretamente no servidor. Você criará um link simbólico para a pasta contendo os bancos (veja na seção abaixo), que contém os seguintes arquivos da versão v138.1:
+- `silva_nr99_v138.1_train_set.fa.gz`
+- `silva_species_assignment_v138.1.fa.gz`
 
 ### O Sistema de Gerenciamento de Filas (SLURM)
 
@@ -128,9 +120,9 @@ LZT0693/
 ├── results/                       # Criado dinamicamente durante a análise
 ├── scripts/                       # Scripts SLURM (.sh) e R (.R)
 │   └── microbiome_tutorial.R     # Script R unificado (DADA2 + Diversidade)
-├── databases/                     # Criado manualmente para o banco SILVA
-│   ├── silva_nr99_v138.2_train_set.fa.gz
-│   └── silva_species_assignment_v138.2.fa.gz
+├── databases/                     # Link simbólico para o banco SILVA
+│   ├── silva_nr99_v138.1_train_set.fa.gz
+│   └── silva_species_assignment_v138.1.fa.gz
 ├── metadata.csv
 ├── TUTORIAL.md
 └── README.md
@@ -141,21 +133,26 @@ LZT0693/
 O pipeline foi projetado para ser muito simples, combinando criação manual e dinâmica:
 
 1. **Pastas criadas MANUALMENTE** (você deve criar no terminal antes de iniciar):
-   - A pasta `data/` com os dados brutos já deve estar disponível.
-   - As pastas `scripts/` e `databases/` devem ser criadas por você no terminal Linux com o comando:
+   - Como os arquivos de dados de sequenciamento não estão disponíveis no repositório, você deve criar um link simbólico apontando para a pasta compartilhada no servidor:
      ```bash
-     mkdir -p scripts databases
+     # Criar link simbólico para a pasta de dados
+     ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/data data
+     ```
+   - Como o banco de dados SILVA é muito grande, crie também um link simbólico para a pasta de bancos compartilhada:
+     ```bash
+     # Criar link simbólico para a pasta de bancos de dados
+     ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/databases databases
+     ```
+   - A pasta `scripts/` deve ser criada por você no terminal Linux com o comando:
+     ```bash
+     mkdir -p scripts
      ```
 2. **Pastas criadas DINAMICAMENTE/AUTOMATICAMENTE** (durante as etapas):
-   - A pasta principal `results/` e todas as suas subpastas (`results/fastqc/`, `results/multiqc/`, `results/cutadapt/` e `results/dada2/`) são criadas **automaticamente** pelas instruções internas dos scripts. Os comandos `mkdir -p` no Bash e `dir.create(..., recursive = TRUE)` no R garantem que o pipeline prepare o ambiente sozinho enquanto roda.
+   - A pasta principal `results/` e todas as suas subpastas (`results/fastqc/`, `results/multiqc/`, `results/cutadapt/` e `results/dada2/`) são criadas automaticamente pelas instruções internas dos scripts. Os comandos `mkdir -p` no Bash e `dir.create(..., recursive = TRUE)` no R garantem que o pipeline prepare o ambiente sozinho enquanto roda.
 
 ---
 
 ## 2. Controle de Qualidade (FastQC / MultiQC)
-
-> **Nota:** Esta etapa já foi executada para este projeto.  
-> Os resultados estão em `results/fastqc/` e `results/multiqc/`.  
-> O script abaixo fica documentado para referência e reprodutibilidade.
 
 Crie o arquivo `scripts/01_fastqc.sh` e submeta via SLURM:
 
@@ -503,11 +500,8 @@ abordagem pode suavizar a estimativa.
 # Aprendizado do modelo de erro — Quality Binned
 # ==============================================================
 
-# Quality bins: 3 bins com Phred representativos de 12, 24 e 40
-#   Bin 1 (Phred 12): ~6.3% erro  — baixa qualidade
-#   Bin 2 (Phred 24): ~0.4% erro  — qualidade moderada
-#   Bin 3 (Phred 40): ~0.01% erro — alta qualidade
-binned_err_fun <- makeBinnedQualErrfun(nqual = 3, binnedQuals = c(12, 24, 40))
+# Quality bins: bins com Phred representativos identificados nos dados (9, 23 e 38)
+binned_err_fun <- makeBinnedQualErrfun(c(9, 23, 38))
 
 # Aprender o modelo de erro — Forward
 cat(">> Aprendendo modelo de erro (Forward) com quality bins...\n")
@@ -622,8 +616,8 @@ write.csv(track, file.path(dada2_dir, "read_tracking.csv"))
 # ==============================================================
 
 # Caminhos para o banco SILVA (EDITAR conforme necessário)
-silva_train <- file.path(base_dir, "databases", "silva_nr99_v138.2_train_set.fa.gz")
-silva_species <- file.path(base_dir, "databases", "silva_species_assignment_v138.2.fa.gz")
+silva_train <- file.path(base_dir, "databases", "silva_nr99_v138.1_train_set.fa.gz")
+silva_species <- file.path(base_dir, "databases", "silva_species_assignment_v138.1.fa.gz")
 
 cat(">> Atribuindo taxonomia (pode demorar alguns minutos)...\n")
 taxa <- assignTaxonomy(seqtab_nochim, silva_train, multithread = TRUE)
@@ -716,30 +710,18 @@ write.csv(alpha_div, file.path(dada2_dir, "alpha_diversity.csv"), row.names = FA
 # Adicionar metadados
 alpha_div_meta <- merge(alpha_div, data.frame(sample_data(ps_bio)), by = "row.names")
 
-# Gráfico: Observed ASVs
-p_obs <- plot_richness(ps_bio, measures = c("Observed", "Shannon", "Simpson")) +
+# Gráfico: Diversidade Alfa por Grupo
+p_obs <- plot_richness(ps_bio, x = "group", measures = c("Observed", "Shannon", "Simpson"), color = "group") +
     geom_boxplot(alpha = 0.3) +
     theme_bw() +
     theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
         strip.text = element_text(size = 12, face = "bold")
     ) +
-    labs(title = "Diversidade Alfa — 16S V3-V4")
+    labs(title = "Diversidade Alfa por Grupo — 16S V3-V4")
 
 ggsave(file.path(dada2_dir, "alpha_diversity_plot.png"), p_obs,
        width = 12, height = 6, dpi = 150)
-
-# ------------------------------------------------------------------
-# Se quiser agrupar por grupo/tratamento (após editar metadata.csv):
-# ------------------------------------------------------------------
-# p_group <- plot_richness(ps_bio, x = "group",
-#                          measures = c("Observed", "Shannon", "Simpson"),
-#                          color = "group") +
-#     geom_boxplot(alpha = 0.3) +
-#     theme_bw() +
-#     labs(title = "Diversidade Alfa por Grupo")
-# ggsave(file.path(dada2_dir, "alpha_diversity_by_group.png"), p_group,
-#        width = 12, height = 6, dpi = 150)
 
 cat(">> Gráficos de diversidade alfa salvos.\n")
 ```
@@ -787,8 +769,8 @@ write.csv(as.matrix(bray_dist),
 
 pcoa_res <- ordinate(ps_rel, method = "PCoA", distance = bray_dist)
 
-# Gráfico PCoA
-p_pcoa <- plot_ordination(ps_rel, pcoa_res, type = "samples") +
+# Gráfico PCoA colorido por grupo
+p_pcoa <- plot_ordination(ps_rel, pcoa_res, type = "samples", color = "group") +
     geom_point(size = 4, alpha = 0.8) +
     theme_bw() +
     theme(
@@ -800,18 +782,6 @@ p_pcoa <- plot_ordination(ps_rel, pcoa_res, type = "samples") +
 
 ggsave(file.path(dada2_dir, "pcoa_bray_curtis.png"), p_pcoa,
        width = 8, height = 6, dpi = 150)
-
-# ------------------------------------------------------------------
-# Se quiser colorir por grupo (após editar metadata.csv):
-# ------------------------------------------------------------------
-# p_pcoa_group <- plot_ordination(ps_rel, pcoa_res,
-#                                  type = "samples", color = "group") +
-#     geom_point(size = 4, alpha = 0.8) +
-#     theme_bw() +
-#     labs(title = "PCoA — Bray-Curtis por Grupo") +
-#     stat_ellipse(aes(color = group), level = 0.95, linetype = 2)
-# ggsave(file.path(dada2_dir, "pcoa_bray_curtis_by_group.png"), p_pcoa_group,
-#        width = 8, height = 6, dpi = 150)
 
 # ------------------------------------------------------------------
 # 7.3 Heatmap da matriz de Bray-Curtis
@@ -836,15 +806,14 @@ pheatmap(bray_mat,
 meta_df <- data.frame(sample_data(ps_bio))
 
 # PERMANOVA — testar se os grupos diferem
-# (Descomentar após editar metadata.csv com os grupos reais)
-# set.seed(42)
-# permanova_res <- adonis2(bray_dist ~ group,
-#                           data = meta_df,
-#                           permutations = 999)
-# cat("\n>> Resultado PERMANOVA:\n")
-# print(permanova_res)
-# write.csv(as.data.frame(permanova_res),
-#           file.path(dada2_dir, "permanova_bray_curtis.csv"))
+set.seed(42)
+permanova_res <- adonis2(bray_dist ~ group,
+                          data = meta_df,
+                          permutations = 999)
+cat("\n>> Resultado PERMANOVA:\n")
+print(permanova_res)
+write.csv(as.data.frame(permanova_res),
+          file.path(dada2_dir, "permanova_bray_curtis.csv"))
 
 cat("\n>> Análise de diversidade beta concluída.\n")
 cat(">> Resultados salvos em:", dada2_dir, "\n")
@@ -858,6 +827,42 @@ cat(">> Resultados salvos em:", dada2_dir, "\n")
 >   Amostras próximas no gráfico são mais similares.
 > - **PERMANOVA:** Testa se a composição difere significativamente entre grupos
 >   (p < 0.05 indica diferença significativa).
+
+---
+
+## 8. Composição Taxonômica (Abundância Relativa)
+
+Além de índices ecológicos gerais, é fundamental visualizar a composição real de microrganismos em cada amostra. Com o `phyloseq`, podemos facilmente colapsar a taxonomia por Filo e plotar um gráfico de barras acumuladas.
+
+```r
+# ==============================================================
+# Composição Taxonômica por Filo
+# ==============================================================
+
+# Agrupar/aglomerar por nível de Filo
+ps_phylum <- tax_glom(ps_bio, "Phylum")
+
+# Converter abundância absoluta para abundância relativa
+ps_phylum_rel <- transform_sample_counts(ps_phylum, function(x) x / sum(x))
+
+# Plotar gráfico de barras acumuladas de abundância relativa
+p_bar <- plot_bar(ps_phylum_rel, fill = "Phylum") +
+    geom_bar(aes(color = Phylum, fill = Phylum), stat = "identity", position = "stack") +
+    theme_bw() +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        plot.title = element_text(size = 14, face = "bold")
+    ) +
+    labs(title = "Composição Taxonômica por Filo (Abundância Relativa)",
+         x = "Amostra",
+         y = "Abundância Relativa")
+
+ggsave(file.path(dada2_dir, "taxonomic_composition_phylum.png"), p_bar,
+       width = 10, height = 6, dpi = 150)
+```
+
+> **Interpretação:**
+> O gráfico mostra a abundância relativa acumulada de filos bacterianos em cada amostra (ou grupo), facilitando a comparação direta do perfil de táxons predominantes.
 
 ---
 
@@ -917,8 +922,8 @@ LZT0693/
 │   ├── fastqc_*.out / .err
 │   └── cutadapt_*.out / .err
 ├── databases/
-│   ├── silva_nr99_v138.2_train_set.fa.gz
-│   └── silva_species_assignment_v138.2.fa.gz
+│   ├── silva_nr99_v138.1_train_set.fa.gz
+│   └── silva_species_assignment_v138.1.fa.gz
 ├── metadata.csv
 ├── TUTORIAL.md
 └── README.md

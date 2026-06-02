@@ -1,5 +1,7 @@
 # Dados brutos de sequenciamento (muito grandes)
 data/
+data
+data_legacy/
 *.fastq
 *.fastq.gz
 *.fq
@@ -8,16 +10,15 @@ data/
 
 # Bancos de dados de referência taxonômica
 databases/
+databases
 *.fa
 *.fa.gz
 *.fasta
 *.fasta.gz
 
-# Resultados intermediários pesados
-results/fastqc/
-results/multiqc/
-results/cutadapt/
-results/dada2/filtered/
+# Resultados
+results/
+scripts/
 
 # R/RStudio arquivos temporários e logs
 .Rhistory
@@ -33,3 +34,7 @@ logs/
 _book/
 _site/
 TUTORIAL.html
+TUTORIAL_files/
+
+# Sistema
+.vscode/
