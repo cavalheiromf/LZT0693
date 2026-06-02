@@ -30,6 +30,8 @@ LZT0693/
 ├── results/                       # Resultados das análises
 │   ├── fastqc/                    # Relatórios FastQC por amostra
 │   └── multiqc/                   # Relatório consolidado MultiQC
+├── slides/                        # Slides das aulas de bioinformática
+│   └── Aula_Do_FASTQ_a_Taxonomia_16S_Completa.pdf
 ├── metadata.csv                   # Metadados das amostras (editar!)
 ├── TUTORIAL.md                    # Tutorial completo do pipeline
 └── README.md                      # Este arquivo
