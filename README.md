@@ -13,7 +13,7 @@ O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultan
 Para clonar este repositório no terminal do servidor, execute:
 
 ```bash
-git clone https://gitlab.com/cavalheiromf/LZT0693.git
+git clone https://github.com/cavalheiromf/LZT0693.git
 cd LZT0693
 ```
 
