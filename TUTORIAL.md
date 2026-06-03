@@ -349,6 +349,10 @@ A partir daqui, todo o processamento é feito em **R**. Execute interativamente 
 # Projeto: LZT0693 — Iniciação Científica em Biotecnologia
 # ==============================================================
 
+# Para garantir o acesso às bibliotecas de bioinformática pré-instaladas no servidor,
+# adicione o caminho compartilhado ao início dos seus locais de busca (.libPaths)
+.libPaths(c("/opt/R/sharedLibs/4.3", .libPaths()))
+
 library(dada2)
 library(phyloseq)
 library(ggplot2)
@@ -483,8 +487,7 @@ write.csv(filt_stats, file.path(filt_dir, "filter_stats.csv"), row.names = TRUE)
 
 O DADA2 precisa estimar as taxas de erro de sequenciamento. Para dados com
 **quality scores binned** (NovaSeq, NextSeq), usamos `makeBinnedQualErrfun()`
-que agrupa os Phred scores em bins discretos. Mesmo para dados MiSeq, essa
-abordagem pode suavizar a estimativa.
+que agrupa os Phred scores em bins discretos.
 
 ```r
 # ==============================================================
