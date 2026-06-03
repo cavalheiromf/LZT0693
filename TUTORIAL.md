@@ -30,6 +30,21 @@
 
 ## 1. Pré-requisitos e Configuração
 
+### Acesso ao RStudio Server
+
+O RStudio Server está rodando no servidor e pode ser acessado diretamente pelo seu navegador web:
+
+* **Endereço de Acesso:** [http://biotec02.esalq.usp.br:59087](http://biotec02.esalq.usp.br:59087)
+
+> **💡 Dica para Acesso Remoto (Túnel SSH):**  
+> Se você estiver fora da rede da USP (ou se o acesso direto estiver bloqueado pelo firewall), você pode criar um túnel SSH a partir do terminal do seu computador pessoal:
+> ```bash
+> ssh -L 59087:localhost:59087 seu_usuario@biotec02.esalq.usp.br
+> ```
+> E então acesse no seu navegador: **[http://localhost:59087](http://localhost:59087)**
+
+---
+
 ### Software no servidor (via `module load`)
 
 As ferramentas de linha de comando estão disponíveis no servidor via sistema de módulos.
