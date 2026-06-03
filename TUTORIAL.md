@@ -111,44 +111,35 @@ Nossos scripts Bash (`scripts/*.sh`) contêm diretivas especiais `#SBATCH` no in
 
 ## Estrutura de diretórios esperada (antes da análise)
 
+Arquivos obtidos ao clonar o repositório:
+
 ```
 LZT0693/
-├── data/
-│   ├── S813_16Sv3v4_01/          # Amostra 01 (R1 + R2 .fastq.gz)
-│   ├── ...                       # Demais amostras
-│   └── S813_16Sv3v4_NN/          # Controle negativo
-├── results/                       # Criado dinamicamente durante a análise
-├── scripts/                       # Scripts SLURM (.sh) e R (.R)
-│   └── microbiome_tutorial.R     # Script R unificado (DADA2 + Diversidade)
-├── databases/                     # Link simbólico para o banco SILVA
-│   ├── silva_nr99_v138.1_train_set.fa.gz
-│   └── silva_species_assignment_v138.1.fa.gz
-├── metadata.csv
-├── TUTORIAL.md
+├── slides/             # Slides das aulas de bioinformática
+│   └── Aula_Do_FASTQ_a_Taxonomia_16S_Completa.pdf
+├── metadata.csv        # Metadados das amostras
+├── TUTORIAL.md         # Este tutorial
+├── .gitignore
 └── README.md
 ```
 
-### Como criar a estrutura de pastas?
+### Como montar a estrutura de trabalho?
 
-O pipeline foi projetado para ser muito simples, combinando criação manual e dinâmica:
+Apenas dois links simbólicos precisam ser criados manualmente antes de iniciar o pipeline:
 
-1. **Pastas criadas MANUALMENTE** (você deve criar no terminal antes de iniciar):
-   - Como os arquivos de dados de sequenciamento não estão disponíveis no repositório, você deve criar um link simbólico apontando para a pasta compartilhada no servidor:
-     ```bash
-     # Criar link simbólico para a pasta de dados
-     ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/data data
-     ```
-   - Como o banco de dados SILVA é muito grande, crie também um link simbólico para a pasta de bancos compartilhada:
-     ```bash
-     # Criar link simbólico para a pasta de bancos de dados
-     ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/databases databases
-     ```
-   - A pasta `scripts/` deve ser criada por você no terminal Linux com o comando:
-     ```bash
-     mkdir -p scripts
-     ```
-2. **Pastas criadas DINAMICAMENTE/AUTOMATICAMENTE** (durante as etapas):
-   - A pasta principal `results/` e todas as suas subpastas (`results/fastqc/`, `results/multiqc/`, `results/cutadapt/` e `results/dada2/`) são criadas automaticamente pelas instruções internas dos scripts. Os comandos `mkdir -p` no Bash e `dir.create(..., recursive = TRUE)` no R garantem que o pipeline prepare o ambiente sozinho enquanto roda.
+```bash
+# 1. Dados brutos de sequenciamento (FASTQ)
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/data data
+
+# 2. Banco de dados taxonômico SILVA
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/databases databases
+```
+
+O restante da estrutura é gerado automaticamente durante o pipeline:
+
+- **`scripts/`** — crie os arquivos conforme as seções 2, 3 e 4 deste tutorial (ou cole os scripts fornecidos em aula)
+- **`results/`** e subpastas — criados pelos comandos `mkdir -p` nos scripts Bash e `dir.create()` no R
+- **`logs/`** — criado pelos scripts SLURM ao serem submetidos
 
 ---
 
@@ -453,15 +444,15 @@ names(filtRs) <- sample_names
 # ---------------------------------------------------------------
 # OPÇÃO A — MiSeq (Phred scores contínuos):
 #   Ajustar com base nos perfis de qualidade (seção 4.2)
-truncF <- 280
-truncR <- 200
-truncQ_val <- 2
+#truncF <- 280
+#truncR <- 200
+#truncQ_val <- 2
 
 # OPÇÃO B — NovaSeq (quality scores binned):
 #   Descomentar as linhas abaixo e comentar a Opção A
-# truncF <- 0
-# truncR <- 0
-# truncQ_val <- 8
+truncF <- 0
+truncR <- 0
+truncQ_val <- 8
 # ---------------------------------------------------------------
 
 # Executar a filtragem
@@ -868,75 +859,82 @@ ggsave(file.path(dada2_dir, "taxonomic_composition_phylum.png"), p_bar,
 
 ## Estrutura de diretórios esperada (após a análise)
 
+Esta é a estrutura completa que você terá localmente após executar todas as etapas. Os itens marcados com `*` **não estão no repositório** — são criados ou linkados localmente.
+
 ```
 LZT0693/
-├── data/
+│
+│  # --- Rastreados pelo git ---
+├── slides/
+│   └── Aula_Do_FASTQ_a_Taxonomia_16S_Completa.pdf
+├── metadata.csv
+├── TUTORIAL.md
+├── .gitignore
+├── README.md
+│
+│  # --- Criados/linkados localmente (não rastreados pelo git) ---
+├── data/ *              → symlink para dados brutos no servidor
 │   ├── S813_16Sv3v4_01/
 │   │   ├── S813_16Sv3v4_01_S83_L001_R1_001.fastq.gz
 │   │   └── S813_16Sv3v4_01_S83_L001_R2_001.fastq.gz
 │   ├── S813_16Sv3v4_02/ ... S813_16Sv3v4_07/
-│   ├── S813_16Sv3v4_NN/
-│   └── S813_aulaBiotec26_499247073.json
-├── results/
-│   ├── fastqc/                              # Etapa 2
-│   │   ├── S813_16Sv3v4_01/
-│   │   │   ├── *_R1_001_fastqc.html
-│   │   │   ├── *_R1_001_fastqc.zip
-│   │   │   ├── *_R2_001_fastqc.html
-│   │   │   └── *_R2_001_fastqc.zip
-│   │   └── ... (por amostra)
-│   ├── multiqc/                             # Etapa 2
-│   │   ├── multiqc_report.html
-│   │   └── multiqc_data/
-│   ├── cutadapt/                            # Etapa 3
-│   │   ├── S813_16Sv3v4_01_R1_trimmed.fastq.gz
-│   │   ├── S813_16Sv3v4_01_R2_trimmed.fastq.gz
-│   │   ├── ... (por amostra)
-│   │   └── logs/
-│   │       └── S813_16Sv3v4_01_cutadapt.log ...
-│   └── dada2/                               # Etapa 4–7
-│       ├── quality_profile_R1.png
-│       ├── quality_profile_R2.png
-│       ├── filtered/
-│       │   ├── S813_16Sv3v4_01_F_filt.fastq.gz
-│       │   ├── S813_16Sv3v4_01_R_filt.fastq.gz
-│       │   ├── ... (por amostra)
-│       │   └── filter_stats.csv
-│       ├── error_model_Forward.png
-│       ├── error_model_Reverse.png
-│       ├── read_tracking.csv
-│       ├── seqtab_nochim.rds
-│       ├── taxa.rds
-│       ├── taxonomy_table.csv
-│       ├── phyloseq_object.rds
-│       ├── alpha_diversity.csv
-│       ├── alpha_diversity_plot.png
-│       ├── bray_curtis_matrix.csv
-│       ├── pcoa_bray_curtis.png
-│       └── bray_curtis_heatmap.png
-├── scripts/
-│   ├── 01_fastqc.sh
-│   ├── 02_cutadapt.sh
-│   └── microbiome_tutorial.R     # Script R unificado
-├── logs/
-│   ├── fastqc_*.out / .err
-│   └── cutadapt_*.out / .err
-├── databases/
+│   └── S813_16Sv3v4_NN/
+├── databases/ *        → symlink para bancos SILVA no servidor
 │   ├── silva_nr99_v138.1_train_set.fa.gz
 │   └── silva_species_assignment_v138.1.fa.gz
-├── metadata.csv
-├── TUTORIAL.md
-└── README.md
+├── scripts/ *          # Scripts criados conforme o tutorial
+│   ├── 01_fastqc.sh
+│   ├── 02_cutadapt.sh
+│   └── microbiome_tutorial.R
+├── logs/ *             # Gerado pelo SLURM
+│   ├── fastqc_*.out / .err
+│   └── cutadapt_*.out / .err
+└── results/ *          # Gerado pelo pipeline
+    ├── fastqc/                              # Etapa 2
+    │   ├── S813_16Sv3v4_01/
+    │   │   ├── *_R1_001_fastqc.html
+    │   │   ├── *_R1_001_fastqc.zip
+    │   │   ├── *_R2_001_fastqc.html
+    │   │   └── *_R2_001_fastqc.zip
+    │   └── ... (por amostra)
+    ├── multiqc/                             # Etapa 2
+    │   ├── multiqc_report.html
+    │   └── multiqc_data/
+    ├── cutadapt/                            # Etapa 3
+    │   ├── S813_16Sv3v4_01_R1_trimmed.fastq.gz
+    │   ├── S813_16Sv3v4_01_R2_trimmed.fastq.gz
+    │   ├── ... (por amostra)
+    │   └── logs/
+    │       └── S813_16Sv3v4_01_cutadapt.log ...
+    └── dada2/                               # Etapas 4–8
+        ├── filtered/
+        │   ├── S813_16Sv3v4_01_F_filt.fastq.gz
+        │   ├── S813_16Sv3v4_01_R_filt.fastq.gz
+        │   ├── ... (por amostra)
+        │   └── filter_stats.csv
+        ├── quality_profile_R1.png
+        ├── quality_profile_R2.png
+        ├── error_model_Forward.png
+        ├── error_model_Reverse.png
+        ├── read_tracking.csv
+        ├── seqtab_nochim.rds
+        ├── taxa.rds
+        ├── taxonomy_table.csv
+        ├── phyloseq_object.rds
+        ├── alpha_diversity.csv
+        ├── alpha_diversity_plot.png
+        ├── bray_curtis_matrix.csv
+        ├── bray_curtis_heatmap.png
+        ├── pcoa_bray_curtis.png
+        └── permanova_bray_curtis.csv
 ```
 
 ---
 
 ## Próximos passos (opcionais)
 
-- [ ] Editar `metadata.csv` com informações reais das amostras
 - [ ] Ajustar `truncLen` com base nos perfis de qualidade e na plataforma (MiSeq vs NovaSeq)
 - [ ] Confirmar os primers utilizados no experimento
-- [ ] Descomentar as análises por grupo após editar os metadados
 - [ ] Executar PERMANOVA para testar diferenças entre grupos
 - [ ] Explorar composição taxonômica (barplots por Filo/Gênero)
 

@@ -2,77 +2,82 @@
 
 ## Descrição
 
-Este repositório contém os dados brutos e o pipeline de análise de sequenciamento de amplicon **16S rRNA (regiões V3-V4)** gerados no contexto da disciplina LZT0693 - Iniciação Científica em Biotecnologia.
+Este repositório contém o pipeline de análise de sequenciamento de amplicon **16S rRNA (regiões V3-V4)** desenvolvido na disciplina LZT0693 - Iniciação Científica em Biotecnologia.
 
-O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultando em 8 bibliotecas: 7 amostras biológicas e 1 controle negativo.
+O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultando em 8 bibliotecas: 7 amostras biológicas (líquen, musgo e mel) e 1 controle negativo.
+
+> **Nota:** Os dados brutos (FASTQ) **não estão incluídos** neste repositório. Eles são acessados por meio de um link simbólico (`data/`) apontando para o diretório compartilhado do servidor.
 
 ## Como Clonar / Baixar este Repositório
 
 Para clonar este repositório no terminal do servidor, execute:
 
 ```bash
-git clone https://github.com/cavalheiromf/LZT0693.git
+git clone https://gitlab.com/cavalheiromf/LZT0693.git
 cd LZT0693
 ```
 
-## Estrutura do repositório
+Após clonar, recriar os links simbólicos necessários:
+
+```bash
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/data     data
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/databases databases
+```
+
+## Estrutura do Repositório
+
+Arquivos rastreados pelo git (o que você obtém ao clonar):
 
 ```
 LZT0693/
-├── data/                          # Dados brutos (FASTQ)
-│   ├── S813_16Sv3v4_01/           # Amostra 01 (R1 + R2)
-│   ├── ...                        # Demais amostras
-│   └── S813_16Sv3v4_NN/           # Controle negativo
-├── scripts/                       # Scripts da análise (.sh e .R)
-│   ├── 01_fastqc.sh               # Controle de qualidade
-│   ├── 02_cutadapt.sh             # Remoção de primers
-│   └── microbiome_tutorial.R      # Pipeline DADA2 e ecologia em R
-├── results/                       # Resultados das análises
-│   ├── fastqc/                    # Relatórios FastQC por amostra
-│   └── multiqc/                   # Relatório consolidado MultiQC
-├── slides/                        # Slides das aulas de bioinformática
+├── slides/             # Slides das aulas de bioinformática
 │   └── Aula_Do_FASTQ_a_Taxonomia_16S_Completa.pdf
-├── metadata.csv                   # Metadados das amostras (editar!)
-├── TUTORIAL.md                    # Tutorial completo do pipeline
-└── README.md                      # Este arquivo
+├── metadata.csv        # Metadados das amostras
+├── TUTORIAL.md         # Tutorial completo do pipeline
+├── .gitignore
+└── README.md           # Este arquivo
 ```
+
+> Os diretórios `data/`, `databases/`, `scripts/`, `results/`, `logs/` e demais arquivos gerados pela análise **não estão no repositório** (ver [`.gitignore`](.gitignore)). Eles são criados ou linkados localmente conforme descrito no `TUTORIAL.md`.
 
 ## Amostras
 
-| ID da Amostra | Index Illumina | Tipo |
-|---|---|---|
-| S813_16Sv3v4_01 | S83 | Amostra biológica |
-| S813_16Sv3v4_02 | S84 | Amostra biológica |
-| S813_16Sv3v4_03 | S85 | Amostra biológica |
-| S813_16Sv3v4_04 | S86 | Amostra biológica |
-| S813_16Sv3v4_05 | S87 | Amostra biológica |
-| S813_16Sv3v4_06 | S88 | Amostra biológica |
-| S813_16Sv3v4_07 | S89 | Amostra biológica |
-| S813_16Sv3v4_NN | S90 | Controle negativo |
+| ID da Amostra     | Grupo  | Tratamento | Réplica | Descrição                      |
+|-------------------|--------|------------|---------|--------------------------------|
+| S813_16Sv3v4_01   | liquen | liquen     | 1       | Amostra de liquen              |
+| S813_16Sv3v4_02   | liquen | liquen     | 2       | Amostra de liquen              |
+| S813_16Sv3v4_03   | musgo  | musgo      | 1       | Amostra de musgo               |
+| S813_16Sv3v4_04   | musgo  | musgo      | 2       | Amostra de musgo               |
+| S813_16Sv3v4_05   | mel    | mel        | 1       | Amostra de mel                 |
+| S813_16Sv3v4_06   | mel    | mel        | 2       | Amostra de mel                 |
+| S813_16Sv3v4_07   | mel    | mel        | 3       | Amostra de mel                 |
+| S813_16Sv3v4_NN   | —      | Nenhum     | —       | Controle negativo (extração/PCR)|
 
 ## Pipeline de Análise
 
-O pipeline completo está descrito em detalhes no arquivo [`TUTORIAL.md`](TUTORIAL.md) e inclui:
+O pipeline completo está descrito em detalhes no arquivo [`TUTORIAL.md`](TUTORIAL.md) (ou [`TUTORIAL.html`](TUTORIAL.html) para visualização renderizada) e inclui:
 
 1. **Controle de qualidade** — FastQC + MultiQC
 2. **Remoção de primers** — Cutadapt
-3. **Denoising e inferência de ASVs** — DADA2 (com modelo de erro *quality binned*: bins 12, 24, 40)
-4. **Atribuição taxonômica** — DADA2 + banco SILVA
+3. **Denoising e inferência de ASVs** — DADA2 (modelo de erro *quality-binned*: bins 9, 23, 38)
+4. **Atribuição taxonômica** — DADA2 + banco SILVA v138.1
 5. **Diversidade alfa** — Índices de riqueza e diversidade (Shannon, Simpson, Observed, Chao1)
-6. **Diversidade beta** — Dissimilaridade de Bray-Curtis + PCoA
+6. **Diversidade beta** — Dissimilaridade de Bray-Curtis + PCoA + heatmap + PERMANOVA
 
 ## Pré-requisitos
 
-- **R** ≥ 4.3 com os pacotes: `dada2`, `phyloseq`, `vegan`, `ggplot2`, `pheatmap`
+- **R** ≥ 4.3 com os pacotes: `dada2`, `phyloseq`, `vegan`, `ggplot2`, `pheatmap`, `reshape2`, `gridExtra`
 - **Cutadapt** 5.2 (via `module load Bio/Cutadapt/5.2`)
 - **FastQC** 0.12.1 (via `module load Bio/FastQC/0.12.1`)
 - **MultiQC** 1.33 (via `module load Bio/MultiQC/1.33`)
 - Acesso ao cluster SLURM para submissão dos scripts bash
+- Acesso ao diretório compartilhado do curso no servidor
 
-## Como começar
+## Como Começar
 
-1. Edite o arquivo `metadata.csv` com as informações reais das amostras
-2. Siga o tutorial passo a passo em `TUTORIAL.md`
+1. Clone o repositório e crie os links simbólicos conforme descrito acima
+2. Verifique o arquivo `metadata.csv` com as informações das amostras
+3. Siga o tutorial passo a passo em `TUTORIAL.md`
 
 ## Referências
 
@@ -82,4 +87,4 @@ O pipeline completo está descrito em detalhes no arquivo [`TUTORIAL.md`](TUTORI
 
 ## Licença
 
-Material didático para uso interno no curso de Iniciação Científica em Biotecnologia - LZT0693.
+Material didático para uso interno no curso de Iniciação Científica em Biotecnologia — LZT0693.
