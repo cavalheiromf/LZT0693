@@ -25,12 +25,12 @@ Crie o arquivo e adicione o código abaixo:
 # ==============================================================================
 
 # 1. Carregar pacotes
-.libPaths(c("/opt/R/sharedLibs/4.3", .libPaths()))
+.libPaths(c("/opt/R/sharedLibs/4.5", .libPaths()))
 library(phyloseq)
 library(maaslin3)
 
 # 2. Carregar o objeto Phyloseq da Parte 01
-ps <- readRDS("../parte_01/results/phyloseq_obj.rds")
+ps <- readRDS("../parte_01/results/dada2/phyloseq_object.rds")
 cat("Phyloseq original (Parte 01):\n")
 print(ps)
 
@@ -44,12 +44,23 @@ print(ps_fam)
 
 # 5. Extrair Tabela de Abundância (ASVs) e Metadados
 # MaAsLin3 exige que as features (ASVs) sejam as colunas e as amostras as linhas
-asv_table <- as.data.frame(t(otu_table(ps_fam)))
+if (taxa_are_rows(ps_fam)) {
+  asv_table <- as.data.frame(t(otu_table(ps_fam)))
+} else {
+  asv_table <- as.data.frame(otu_table(ps_fam))
+}
 metadata  <- as(sample_data(ps_fam), "data.frame")
 
 # Adicionar taxonomia aos nomes das features para o gráfico ficar legível
 tax_table_df <- as.data.frame(tax_table(ps_fam))
-colnames(asv_table) <- tax_table_df$Family
+# Criar nomes legíveis: usar Family, ou Order se Family for NA
+feat_names <- ifelse(
+  is.na(tax_table_df[colnames(asv_table), "Family"]),
+  paste0(tax_table_df[colnames(asv_table), "Order"], " (Unknown Family)"),
+  tax_table_df[colnames(asv_table), "Family"]
+)
+feat_names[is.na(feat_names)] <- paste0("Unclassified_", seq_len(sum(is.na(feat_names))))
+colnames(asv_table) <- make.unique(feat_names)
 ```
 
 ---
@@ -98,11 +109,10 @@ Como este é um dataset pequeno ("slice"), a análise será muito rápida, mas �
 #SBATCH --output=logs/maaslin_slice_%j.out
 #SBATCH --error=logs/maaslin_slice_%j.err
 
-mkdir -p logs
 mkdir -p results/maaslin3_sliced
 
 # Carregar o R e executar o script
-module load HPC/R/4.3.3
+module load HPC/R/4.5.1
 Rscript scripts/maaslin3_sliced.R
 ```
 
