@@ -48,7 +48,8 @@ Integração de múltiplos conjuntos de dados e análise de abundância diferenc
 
 * **Objetivo**: Combinar as tabelas de ASVs e taxonomias das Partes 01 e 02, agrupar por nível taxonômico (ex. Família) e rodar modelagens lineares com correção de efeito de lote e profundidade de sequenciamento.
 * **Etapas**: Mesclagem de ASVs → Harmonização de metadados → `tax_glom` (Phyloseq) → MaAsLin3.
-* **Tutorial completo**: [`parte_03/TUTORIAL.md`](parte_03/TUTORIAL.md)
+* **Tutorial Completo (Integração)**: [`parte_03/TUTORIAL.md`](parte_03/TUTORIAL.md)
+* **Tutorial Simplificado (Slice)**: [`parte_03/TUTORIAL_mel_liquen.md`](parte_03/TUTORIAL_mel_liquen.md) - *Ideal para começar! Aborda uma comparação simples de Mel vs Líquen usando apenas a Parte 01.*
 
 ---
 
