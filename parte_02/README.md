@@ -4,7 +4,7 @@
 
 Este repositório contém o pipeline de análise de sequenciamento de amplicon **16S rRNA (regiões V3-V4)** desenvolvido na disciplina LZT0693 - Iniciação Científica em Biotecnologia.
 
-O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultando em 17 bibliotecas: 16 amostras biológicas (Grupo A e Grupo B) e 1 controle negativo.
+O sequenciamento foi realizado em plataforma **Illumina** (paired-end), resultando em 17 bibliotecas: 16 amostras biológicas (grupos liquen e musgo) e 1 controle negativo.
 
 > **Nota:** Os dados brutos (FASTQ) **não estão incluídos** neste repositório. Eles são acessados por meio de um link simbólico (`data/`) apontando para o diretório compartilhado do servidor.
 
@@ -41,22 +41,22 @@ LZT0693/parte_02/
 
 | ID da Amostra     | Grupo    | Tratamento    | Réplica | Descrição                      |
 |-------------------|----------|---------------|---------|--------------------------------|
-| S813_A1           | Grupo_A  | Tratamento_A  | 1       | Amostra A1                     |
-| S813_A2           | Grupo_A  | Tratamento_A  | 2       | Amostra A2                     |
-| S813_A3           | Grupo_A  | Tratamento_A  | 3       | Amostra A3                     |
-| S813_A4           | Grupo_A  | Tratamento_A  | 4       | Amostra A4                     |
-| S813_A5           | Grupo_A  | Tratamento_A  | 5       | Amostra A5                     |
-| S813_A6           | Grupo_A  | Tratamento_A  | 6       | Amostra A6                     |
-| S813_A7           | Grupo_A  | Tratamento_A  | 7       | Amostra A7                     |
-| S813_A8           | Grupo_A  | Tratamento_A  | 8       | Amostra A8                     |
-| S813_A9           | Grupo_A  | Tratamento_A  | 9       | Amostra A9                     |
-| S813_A10          | Grupo_A  | Tratamento_A  | 10      | Amostra A10                    |
-| S813_A11          | Grupo_A  | Tratamento_A  | 11      | Amostra A11                    |
-| S813_A12          | Grupo_A  | Tratamento_A  | 12      | Amostra A12                    |
-| S813_B1           | Grupo_B  | Tratamento_B  | 1       | Amostra B1                     |
-| S813_B2           | Grupo_B  | Tratamento_B  | 2       | Amostra B2                     |
-| S813_B3           | Grupo_B  | Tratamento_B  | 3       | Amostra B3                     |
-| S813_B4           | Grupo_B  | Tratamento_B  | 4       | Amostra B4                     |
+| S813_A1           | liquen   | poluidos      | 1       | liquen abacateiro              |
+| S813_A2           | liquen   | poluidos      | 2       | liquen amoreira                |
+| S813_A3           | liquen   | poluidos      | 3       | liquen palmeira imperial       |
+| S813_A4           | musgo    | epifita       | 1       | musgo                          |
+| S813_A5           | musgo    | epifita       | 2       | musgo                          |
+| S813_A6           | musgo    | epifita       | 3       | musgo                          |
+| S813_A7           | musgo    | rupicula      | 1       | musgo                          |
+| S813_A8           | musgo    | rupicula      | 2       | Amostra A8                     |
+| S813_A9           | musgo    | rupicula      | 3       | Amostra A9                     |
+| S813_A10          | musgo    | rupicula      | 4       | Amostra A10                    |
+| S813_A11          | musgo    | rupicula      | 5       | Amostra A11                    |
+| S813_A12          | musgo    | rupicula      | 6       | Amostra A12                    |
+| S813_B1           | musgo    | rupicula      | 7       | Amostra B1                     |
+| S813_B2           | musgo    | terricola     | 1       | Amostra B2                     |
+| S813_B3           | musgo    | terricola     | 2       | Amostra B3                     |
+| S813_B4           | musgo    | terricola     | 3       | Amostra B4                     |
 | S813_NN_V3V4      | Controle | Nenhum        | NA      | Controle negativo              |
 
 ## Pipeline de Análise

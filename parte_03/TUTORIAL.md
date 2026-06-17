@@ -33,7 +33,7 @@ Nas aulas anteriores, vocês processaram dois conjuntos de amostras de forma ind
 
 | | Parte 01 | Parte 02 |
 |---|---|---|
-| **Amostras** | Líquen, musgo, mel | Grupo A, Grupo B |
+| **Amostras** | Líquen, musgo, mel | Líquen, musgo |
 | **Controle negativo** | `S813_16Sv3v4_NN` | `S813_NN_V3V4` |
 | **Sequenciamento** | Corrida/lote 1 | Corrida/lote 2 |
 
@@ -43,7 +43,7 @@ Cada aula gerou sua própria tabela de ASVs (`seqtab_nochim.rds`) e classificaç
 
 > **✅ A solução:** Usar o **MaAsLin3** (*Microbiome Multivariable Association with Linear Models*), que permite modelar a abundância de cada táxon incluindo covariáveis de ajuste como `batch` (lote) e `reads` (profundidade de sequenciamento). Assim, a fórmula estatística fica:
 >
-> $$\text{Abundância} \sim \text{group} + \text{batch} + \text{reads}$$
+> $$\text{Abundância} \sim \text{treatment} + \text{batch} + \text{reads}$$
 
 ---
 
@@ -80,7 +80,7 @@ Antes de mergulhar no código, veja o panorama do que faremos:
         └───────────┬───────────┘
                     ▼
         ┌───────────────────────┐
-        │       MaAsLin3        │  ← ~ group + batch + reads
+        │       MaAsLin3        │  ← ~ treatment + batch + reads
         │  Abundância diferencial│
         └───────────┬───────────┘
                     ▼
@@ -318,43 +318,17 @@ cat("Famílias taxonômicas:", ncol(final_seqtab), "\n")
 
 > **🔍 O que esperar:** O número de colunas (features) cairá drasticamente. Por exemplo, de ~3.000 ASVs para ~150 famílias. Agora, os nomes dos táxons serão legíveis (ex: `Firmicutes__Lactobacillaceae`), facilitando a análise posterior.
 
-### 4.8 Executar o MaAsLin3 com seleção dinâmica de covariáveis
+### 4.8 Executar o MaAsLin3
 
-Finalmente, rodamos o modelo. A fórmula básica desejada seria `~ group + treatment + batch + reads`. Porém, se filtrarmos os dados (ex: selecionando apenas um grupo), algumas dessas variáveis passam a ter **apenas 1 valor/nível**, o que causará o erro clássico de contrastes no R. 
-
-Para tornar o script robusto, adicionamos uma etapa que remove automaticamente da fórmula qualquer preditor sem variância real:
+Finalmente, executamos o modelo definindo explicitamente a nossa fórmula estatística de interesse: `~ treatment + batch + reads`.
 
 ```r
-# Definir preditores candidatos
-formula_vars <- c("group", "treatment", "batch", "reads")
-
-# Filtrar para manter apenas variáveis com variabilidade (fatores com >= 2 níveis ou numéricos)
-vars_to_keep <- sapply(formula_vars, function(v) {
-  if (!v %in% colnames(final_metadata)) return(FALSE)
-  col <- final_metadata[[v]]
-  if (is.factor(col) || is.character(col)) {
-    return(length(unique(na.omit(col))) >= 2)
-  }
-  return(TRUE)
-})
-
-vars_kept    <- formula_vars[vars_to_keep]
-vars_dropped <- formula_vars[!vars_to_keep]
-
-if (length(vars_dropped) > 0) {
-  cat("⚠️ Variáveis removidas da fórmula (apenas 1 nível):", paste(vars_dropped, collapse = ", "), "\n")
-}
-
-# Criar a string de fórmula final
-maaslin_formula <- paste("~", paste(vars_kept, collapse = " + "))
-cat("✅ Fórmula final construída:", maaslin_formula, "\n")
-
 # Executar o MaAsLin3
 maaslin_results <- maaslin3(
   input_data       = final_seqtab,
   input_metadata   = final_metadata,
   output           = output_dir,
-  formula          = maaslin_formula,
+  formula          = "~ treatment + batch + reads",
   normalization    = "TSS",
   transform        = "LOG",
   min_abundance    = 0.0001,
@@ -373,7 +347,7 @@ cat("\n>> Os resultados foram salvos no diretório:", output_dir, "\n")
 | `input_data` | `merged_seqtab_glom` | Matriz de abundâncias (amostras × táxons). Aqui usamos os dados já agrupados por família. | Pode ser a tabela de ASVs original (`merged_seqtab`) se não quiser agrupar. |
 | `input_metadata` | `final_metadata` | Tabela com as variáveis clínicas/experimentais de cada amostra. | — |
 | `output` | `output_dir` | Pasta onde os resultados serão salvos (tabelas `.tsv`, gráficos `.pdf`). | Qualquer caminho válido. |
-| `formula` | `"~ group + batch + reads"` | Define o modelo estatístico. `group` é a variável de interesse; `batch` e `reads` são covariáveis de ajuste. | Remover `reads` se a profundidade for homogênea; adicionar outras variáveis como `treatment` ou `sex`. |
+| `formula` | `"~ treatment + batch + reads"` | Define o modelo estatístico. `treatment` é a variável de interesse; `batch` e `reads` são covariáveis de ajuste. | Remover `reads` se a profundidade for homogênea; adicionar outras variáveis clínicas se houver. |
 | `normalization` | `"TSS"` | **Total Sum Scaling**: divide cada contagem pelo total da amostra, convertendo em proporções (abundância relativa). É o método mais intuitivo e recomendado para dados composicionais de microbioma. | `"CLR"` (Centered Log-Ratio, mais robusto para composicionalidade mas menos intuitivo), `"CSS"` (Cumulative Sum Scaling), `"NONE"` (sem normalização). |
 | `transform` | `"LOG"` | Aplica transformação logarítmica (`log(x + pseudocount)`) após a normalização. Estabiliza a variância e reduz o peso de táxons hiper-abundantes, tornando a distribuição mais adequada para modelos lineares. | `"AST"` (Arcsine Square Root, alternativa para dados proporcionais), `"NONE"` (sem transformação). |
 | `min_abundance` | `0.0001` | Abundância relativa mínima para que um táxon seja considerado na análise. Táxons com abundância média abaixo deste limiar são descartados antes da modelagem. | Aumentar para `0.001` se quiser focar apenas em táxons mais abundantes; diminuir para `0.00001` se quiser incluir mais táxons raros. |
@@ -393,7 +367,7 @@ Os resultados serão gravados em `results/maaslin3/` e contêm:
 | Coluna | O que significa |
 |--------|-----------------|
 | `feature` | Nome do táxon (família, gênero, etc.) |
-| `metadata` | A covariável testada (`group`, `batch` ou `reads`) |
+| `metadata` | A covariável testada (`treatment`, `batch` ou `reads`) |
 | `coef` | Coeficiente do modelo: **positivo** = mais abundante no grupo testado; **negativo** = menos abundante |
 | `pval` | p-valor bruto |
 | `qval` | p-valor corrigido (FDR). **Táxons com `qval < 0.05` são considerados estatisticamente significativos** |
@@ -403,7 +377,7 @@ Os resultados serão gravados em `results/maaslin3/` e contêm:
 - **Heatmap (`maaslin3_heatmap.pdf`)**: Mostra os coeficientes de associação para todos os táxons significativos de forma consolidada.
 - **Scatter plots / Boxplots**: Gráficos individuais para cada táxon significativo, mostrando a distribuição de abundância relativa entre os grupos.
 
-> **🔍 O que procurar:** Foque nas linhas onde `metadata == "group"` e `qval < 0.05`. Essas são as famílias bacterianas que apresentam diferença estatisticamente significativa entre seus grupos biológicos, **já corrigidas** para efeito de lote e profundidade de sequenciamento.
+> **🔍 O que procurar:** Foque nas linhas onde `metadata == "treatment"` e `qval < 0.05`. Essas são as famílias bacterianas que apresentam diferença estatisticamente significativa entre seus tratamentos, **já corrigidas** para efeito de lote e profundidade de sequenciamento.
 
 ### 🧪 Exemplo concreto de interpretação
 
@@ -411,19 +385,19 @@ Suponha que você encontre a seguinte linha no arquivo `all_results.tsv`:
 
 | feature | metadata | value | coef | stderr | pval | qval |
 |---------|----------|-------|------|--------|------|------|
-| Lachnospiraceae | group | musgo | 1.82 | 0.41 | 0.0003 | 0.012 |
+| Lachnospiraceae | treatment | epifita | 1.82 | 0.41 | 0.0003 | 0.012 |
 
 Como interpretar:
 
 1. **`feature = Lachnospiraceae`**: A família bacteriana analisada.
-2. **`metadata = group`**: O resultado se refere à variável de interesse (grupo biológico), não ao lote ou profundidade.
-3. **`value = musgo`**: O grupo específico sendo comparado (em relação ao grupo de referência, que o R define alfabeticamente — neste caso, seria `liquen`).
-4. **`coef = 1.82`**: O coeficiente é **positivo**, indicando que a família Lachnospiraceae é **mais abundante** nas amostras de musgo do que nas de líquen (grupo de referência). Em escala logarítmica, isso corresponde a aproximadamente `10^1.82 ≈ 66 vezes` mais abundante.
+2. **`metadata = treatment`**: O resultado se refere à variável de interesse (tratamento).
+3. **`value = epifita`**: O tratamento específico sendo comparado (em relação ao tratamento de referência, que o R define alfabeticamente ou configurado via relevel — neste caso, seria `rupicula`).
+4. **`coef = 1.82`**: O coeficiente é **positivo**, indicando que a família Lachnospiraceae é **mais abundante** nas amostras epífitas do que nas rupícolas (referência). Em escala logarítmica, isso corresponde a aproximadamente `10^1.82 ≈ 66 vezes` mais abundante.
 5. **`qval = 0.012`**: O q-value (p-valor corrigido para múltiplos testes via FDR) é **menor que 0.05**, portanto este resultado é **estatisticamente significativo**.
 
-> **💡 Atenção ao grupo de referência:** O R ordena os níveis de fatores alfabeticamente por padrão. No exemplo acima com grupos `liquen`, `mel` e `musgo`, o grupo de referência seria `liquen`. Os coeficientes de `mel` e `musgo` são sempre relativos a ele. Para alterar o grupo de referência, use `relevel()` antes de rodar o MaAsLin3:
+> **💡 Atenção ao nível de referência:** O R ordena os níveis de fatores alfabeticamente por padrão. No exemplo acima, os coeficientes de `epifita` são relativos à referência. Para alterar a referência, use `relevel()` antes de rodar o MaAsLin3:
 > ```r
-> final_metadata$group <- relevel(factor(final_metadata$group), ref = "mel")
+> final_metadata$treatment <- relevel(factor(final_metadata$treatment), ref = "saudavel")
 > ```
 
 ---
@@ -497,11 +471,11 @@ library(maaslin3)
 
 ### ❌ `Error in contrasts<-` (`contrasts can be applied only to factors with 2 or more levels`)
 
-**Causa:** Uma variável categórica na fórmula tem apenas **1 nível** nos dados após os filtros aplicados (por exemplo, você filtrou apenas pelo grupo `"musgo"`, deixando a variável `group` com apenas um nível, ou todas as amostras são da `"parte_02"`, deixando `batch` com apenas um nível). O modelo linear de regressão exige variação (pelo menos dois grupos/valores diferentes) para calcular contrastes e estimar coeficientes.
+**Causa:** Uma variável categórica na fórmula tem apenas **1 nível** nos dados após os filtros aplicados (por exemplo, se filtrarmos apenas pelo tratamento `"rupicula"`, deixando a variável `treatment` com apenas um nível, ou todas as amostras são da `"parte_02"`, deixando `batch` com apenas um nível). O modelo linear de regressão exige variação (pelo menos dois grupos/valores diferentes) para calcular contrastes e estimar coeficientes.
 
 **Solução:**
-- A lógica de seleção de covariáveis adicionada no script na etapa 8a já faz esse descarte dinâmico automaticamente, excluindo preditores constantes e mostrando alertas como: `⚠️ Variáveis removidas da fórmula (apenas 1 nível): group`.
-- Se você quiser realizar a comparação entre tratamentos para o grupo `"musgo"`, a fórmula gerada automaticamente será `~ treatment + batch + reads`. Não é necessário alterar a fórmula manualmente!
+- Com a definição explícita da fórmula, é necessário garantir que não tenhamos filtrado os dados de modo a tornar as variáveis contantes.
+- Verifique se a variável tem ao menos dois níveis: `table(final_metadata$treatment)`
 
 ### ⚠️ O gráfico gerou tendências lineares (linhas) para variáveis de grupos discretos
 
@@ -518,7 +492,7 @@ library(maaslin3)
 
 **Verificações recomendadas:**
 - Confirme que os nomes das amostras nos metadados batem exatamente com os nomes das linhas na tabela de ASVs (`rownames`). Diferenças de maiúsculas/minúsculas ou espaços extras causam problemas silenciosos.
-- Verifique se a coluna `group` nos metadados contém os valores corretos (sem typos).
+- Verifique se a coluna `treatment` nos metadados contém os valores corretos (sem typos).
 - Inspecione a tabela de metadados mesclada com `head(merged_metadata)` e `str(merged_metadata)` para confirmar que `batch` e `reads` foram adicionados corretamente.
 
 

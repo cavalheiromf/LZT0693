@@ -41,16 +41,16 @@ LZT0693/parte_01/
 
 ## Amostras
 
-| ID da Amostra     | Grupo  | Tratamento | Réplica | Descrição                      |
-|-------------------|--------|------------|---------|--------------------------------|
-| S813_16Sv3v4_01   | liquen | liquen     | 1       | Amostra de liquen              |
-| S813_16Sv3v4_02   | liquen | liquen     | 2       | Amostra de liquen              |
-| S813_16Sv3v4_03   | musgo  | musgo      | 1       | Amostra de musgo               |
-| S813_16Sv3v4_04   | musgo  | musgo      | 2       | Amostra de musgo               |
-| S813_16Sv3v4_05   | mel    | mel        | 1       | Amostra de mel                 |
-| S813_16Sv3v4_06   | mel    | mel        | 2       | Amostra de mel                 |
-| S813_16Sv3v4_07   | mel    | mel        | 3       | Amostra de mel                 |
-| S813_16Sv3v4_NN   | —      | Nenhum     | —       | Controle negativo (extração/PCR)|
+| ID da Amostra     | Grupo    | Tratamento | Réplica | Descrição                                 |
+|-------------------|----------|------------|---------|-------------------------------------------|
+| S813_16Sv3v4_01   | liquen   | saudavel   | 1       | Amostra de liquen                         |
+| S813_16Sv3v4_02   | liquen   | saudavel   | 2       | Amostra de liquen                         |
+| S813_16Sv3v4_03   | musgo    | rupicula   | 1       | Amostra de musgo                          |
+| S813_16Sv3v4_04   | musgo    | rupicula   | 2       | Amostra de musgo                          |
+| S813_16Sv3v4_05   | mel      | A          | 1       | Amostra de mel de Scaptotrigona depilis   |
+| S813_16Sv3v4_06   | mel      | B          | 2       | Amostra de mel de Melipona quadrifasciata |
+| S813_16Sv3v4_07   | mel      | C          | 3       | Amostra de mel de Tetrabonisca angustula  |
+| S813_16Sv3v4_NN   | Controle | Nenhum     | NA      | Controle negativo de extração/PCR         |
 
 ## Pipeline de Análise
 

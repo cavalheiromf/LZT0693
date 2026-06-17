@@ -65,15 +65,6 @@ samples_to_keep <- intersect(rownames(merged_metadata), rownames(merged_seqtab))
 merged_seqtab   <- merged_seqtab[samples_to_keep, ]
 merged_metadata <- merged_metadata[samples_to_keep, ]
 
-# 5b. [FILTRO DE COMPARAÇÃO OPCIONAL]
-# Descomente para comparar apenas grupos/tratamentos específicos de interesse.
-# Exemplo (apenas grupo musgo com tratamentos epifita e rupicula):
-# merged_metadata <- merged_metadata[
-#   merged_metadata$group == "musgo" &
-#   merged_metadata$treatment %in% c("epifita", "rupicula"), ]
-# samples_to_keep <- intersect(rownames(merged_metadata), rownames(merged_seqtab))
-# merged_seqtab   <- merged_seqtab[samples_to_keep, ]
-# merged_metadata <- merged_metadata[samples_to_keep, ]
 
 # 6. Calcular a profundidade de sequenciamento
 merged_metadata$reads <- rowSums(merged_seqtab)
@@ -115,34 +106,12 @@ taxa_names(ps_glom) <- make.unique(new_names, sep = "_")
 final_seqtab   <- as(otu_table(ps_glom), "matrix")
 final_metadata <- as(sample_data(ps_glom), "data.frame")
 
-# 8. Executar o MaAsLin3 com seleção dinâmica de covariáveis
-formula_vars <- c("group", "treatment", "batch", "reads")
-
-# Descartar preditores sem variação (evita erros de contrastes com nível único)
-vars_to_keep <- sapply(formula_vars, function(v) {
-  if (!v %in% colnames(final_metadata)) return(FALSE)
-  col <- final_metadata[[v]]
-  if (is.factor(col) || is.character(col)) {
-    return(length(unique(na.omit(col))) >= 2)
-  }
-  return(TRUE)
-})
-
-vars_kept    <- formula_vars[vars_to_keep]
-vars_dropped <- formula_vars[!vars_to_keep]
-
-if (length(vars_dropped) > 0) {
-  cat("⚠️ Variáveis removidas da fórmula (apenas 1 nível):", paste(vars_dropped, collapse = ", "), "\n")
-}
-
-maaslin_formula <- paste("~", paste(vars_kept, collapse = " + "))
-cat("✅ Fórmula estatística:", maaslin_formula, "\n")
-
+# 8. Executar o MaAsLin3
 maaslin_results <- maaslin3(
   input_data       = final_seqtab,
   input_metadata   = final_metadata,
   output           = output_dir,
-  formula          = maaslin_formula,
+  formula          = "~ treatment + batch + reads",
   normalization    = "TSS",
   transform        = "LOG",
   min_abundance    = 0.0001,
