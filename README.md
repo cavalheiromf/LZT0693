@@ -14,15 +14,12 @@ LZT0693/
 ├── parte_01/               # Módulo 1 — Pipeline DADA2 introdutório
 │   ├── TUTORIAL.md
 │   ├── metadata.csv
-│   ├── scripts/
 │   └── slides/
 ├── parte_02/               # Módulo 2 — Pipeline com novos tratamentos
 │   ├── TUTORIAL.md
-│   ├── metadata.csv
-│   └── scripts/
+│   └── metadata.csv
 └── parte_03/               # Módulo 3 — Integração e MaAsLin3
-    ├── TUTORIAL.md
-    └── scripts/
+    └── TUTORIAL.md
 ```
 
 ---
@@ -77,9 +74,17 @@ ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/data     data
 ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/databases databases
 ```
 
-**2. Módulos de software (Automático):**
+**2. Compreender o carregamento de módulos no servidor:**
 
-> **💡 Nota:** Os módulos necessários (`FastQC`, `MultiQC` e `Cutadapt`) já estão embutidos dentro dos scripts SLURM que você criará e submeterá nas próximas etapas. Você **não precisa** executá-los manualmente no seu terminal.
+Para que os programas funcionem dentro do servidor, eles já estão instalados, mas precisam ser "chamados" (ou ativados) na sua sessão antes de serem usados. O comando utilizado para ativar um programa é o `module load`, conforme o exemplo abaixo:
+
+```bash
+module load Bio/FastQC/0.12.1
+module load Bio/MultiQC/1.33
+module load Bio/Cutadapt/5.2
+```
+
+> **💡 Aviso Importante:** Você **não precisa** executar esses comandos manualmente no seu terminal agora. Esse carregamento será realizado automaticamente dentro dos scripts do SLURM (arquivos `.sh`) que você criará nas próximas etapas. O exemplo acima serve apenas para que você entenda como a ativação de programas funciona na arquitetura do servidor.
 
 **3. Configurar o acesso às bibliotecas R no RStudio Server:**
 
