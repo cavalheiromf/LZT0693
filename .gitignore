@@ -20,9 +20,16 @@ databases
 results/
 
 # R/RStudio arquivos temporários e logs
+.Rproj.user
 .Rhistory
 .RData
-.Rproj.user/
+.Ruserdata
+
+# Ignorar pastas de scripts (para que os alunos criem os seus)
+parte_01/scripts/
+parte_02/scripts/
+parte_03/scripts/
+
 logs/
 *.log
 *.out
