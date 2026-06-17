@@ -77,13 +77,9 @@ ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/data     data
 ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/databases databases
 ```
 
-**2. Carregar os módulos de software no terminal (antes de submeter scripts ao SLURM):**
+**2. Módulos de software (Automático):**
 
-```bash
-module load Bio/FastQC/0.12.1
-module load Bio/MultiQC/1.33
-module load Bio/Cutadapt/5.2
-```
+> **💡 Nota:** Os módulos necessários (`FastQC`, `MultiQC` e `Cutadapt`) já estão embutidos dentro dos scripts SLURM que você criará e submeterá nas próximas etapas. Você **não precisa** executá-los manualmente no seu terminal.
 
 **3. Configurar o acesso às bibliotecas R no RStudio Server:**
 
@@ -154,19 +150,3 @@ Rscript scripts/maaslin_analysis.R
    ```
 2. Siga a seção **Configuração Específica por Módulo** acima para preparar o ambiente da parte desejada.
 3. Abra o `TUTORIAL.md` da parte correspondente e siga o passo a passo.
-
----
-
-## 📜 Histórico de Modificações Recentes (Changelog)
-
-Para fins de acompanhamento orgânico da evolução do projeto (especialmente para a Parte 03 e adaptações ao servidor):
-
-* **Raiz do Projeto:**
-  * Inclusão de instruções detalhadas no README sobre links simbólicos e carregamento de módulos (FastQC, MultiQC, Cutadapt).
-  * O arquivo `.gitignore` foi corrigido para que todos os códigos fonte (`scripts/`) subam para o git, ignorando apenas saídas compiladas (`*.html`).
-* **Módulo 3 (Integração e MaAsLin3):**
-  * O tutorial foi totalmente reestruturado com sumário, diagramas e foco didático.
-  * Adicionada a covariável `reads` (profundidade de sequenciamento) e a etapa de agrupamento taxonômico (`tax_glom`) para robustez estatística, seguindo boas práticas.
-  * Criadas seções de Troubleshooting (Resolução de Problemas), Glossário e um exemplo concreto de interpretação dos resultados do MaAsLin3.
-* **Módulos 1 e 2 (DADA2):**
-  * A etapa de Aprendizado do Modelo de Erro (`learnErrors()`) foi simplificada. Como o servidor usa o R 4.3 (sem a função mais recente `makeBinnedQualErrfun`), o pipeline foi adaptado de forma didática para usar a função padrão do DADA2, conforme recomendação oficial para dados NovaSeq nessas condições.
