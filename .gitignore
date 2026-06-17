@@ -18,7 +18,6 @@ databases
 
 # Resultados
 results/
-scripts/
 
 # R/RStudio arquivos temporários e logs
 .Rhistory
@@ -33,8 +32,8 @@ logs/
 .quarto/
 _book/
 _site/
-TUTORIAL.html
-TUTORIAL_files/
+**/TUTORIAL.html
+**/TUTORIAL_files/
 
 # Sistema
 .vscode/

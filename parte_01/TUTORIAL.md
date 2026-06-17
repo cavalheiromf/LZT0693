@@ -498,33 +498,27 @@ print(filt_stats)
 write.csv(filt_stats, file.path(filt_dir, "filter_stats.csv"), row.names = TRUE)
 ```
 
-### 4.4 Aprendizado do modelo de erro (Quality Binned)
+### 4.4 Aprendizado do modelo de erro
 
-O DADA2 precisa estimar as taxas de erro de sequenciamento. Para dados com
-**quality scores binned** (NovaSeq, NextSeq), usamos `makeBinnedQualErrfun()`
-que agrupa os Phred scores em bins discretos.
+O DADA2 precisa estimar as taxas de erro de sequenciamento. Utilizaremos a função padrão `learnErrors()`.
+
+> **⚠️ Nota sobre R 4.3 e dados NovaSeq (Quality Binned):**
+> O NovaSeq gera *quality scores binned* (agrupados em degraus). Versões mais recentes do DADA2 possuem uma função específica para isso (`makeBinnedQualErrfun`). Porém, como estamos utilizando um ambiente com **R 4.3** no servidor e uma versão mais antiga do pacote, essa função não está disponível.
+> 
+> A solução recomendada pelo próprio desenvolvedor do DADA2 para essas versões antigas é **utilizar a função padrão `learnErrors`**. O modelo padrão (loess) tentará se ajustar aos degraus. Os pontos nos gráficos de erro parecerão estranhos (agrupados verticalmente em valores discretos de Phred), mas a linha preta de regressão ainda assim estimará as taxas de erro corretamente.
 
 ```r
 # ==============================================================
-# Aprendizado do modelo de erro — Quality Binned
+# Aprendizado do modelo de erro
 # ==============================================================
 
-# Quality bins: bins com Phred representativos identificados nos dados (9, 23 e 38)
-binned_err_fun <- makeBinnedQualErrfun(c(9, 23, 38))
-
 # Aprender o modelo de erro — Forward
-cat(">> Aprendendo modelo de erro (Forward) com quality bins...\n")
-errF <- learnErrors(filtFs, errorEstimationFunction = binned_err_fun,
-                    multithread = TRUE)
+cat(">> Aprendendo modelo de erro (Forward)...\n")
+errF <- learnErrors(filtFs, multithread = TRUE)
 
 # Aprender o modelo de erro — Reverse
-cat(">> Aprendendo modelo de erro (Reverse) com quality bins...\n")
-errR <- learnErrors(filtRs, errorEstimationFunction = binned_err_fun,
-                    multithread = TRUE)
-
-# Alternativa para MiSeq (modelo padrão loess, sem bins):
-# errF <- learnErrors(filtFs, multithread = TRUE)
-# errR <- learnErrors(filtRs, multithread = TRUE)
+cat(">> Aprendendo modelo de erro (Reverse)...\n")
+errR <- learnErrors(filtRs, multithread = TRUE)
 
 # Visualizar os modelos de erro
 p_errF <- plotErrors(errF, nominalQ = TRUE)
