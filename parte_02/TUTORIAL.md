@@ -178,9 +178,6 @@ Crie o arquivo `scripts/01_fastqc.sh` e submeta via SLURM:
 # Controle de qualidade com FastQC e MultiQC
 # ==============================================================
 
-# Criar diretório de logs (se não existir)
-mkdir -p logs
-
 # Carregar módulos
 module load Bio/FastQC/0.12.1
 module load Bio/MultiQC/1.33
@@ -279,9 +276,6 @@ Crie o arquivo `scripts/02_cutadapt.sh` e submeta via SLURM:
 # ==============================================================
 # Remoção de primers com Cutadapt
 # ==============================================================
-
-# Criar diretório de logs (se não existir)
-mkdir -p logs
 
 # Carregar módulo
 module load Bio/Cutadapt/5.2

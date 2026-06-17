@@ -13,9 +13,6 @@
 # Remoção de primers com Cutadapt
 # ==============================================================
 
-# Criar diretório de logs (se não existir)
-mkdir -p logs
-
 # Carregar módulo
 module load Bio/Cutadapt/5.2
 
