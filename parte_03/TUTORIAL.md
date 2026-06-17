@@ -242,6 +242,26 @@ merged_metadata$reads <- rowSums(merged_seqtab)
 
 > **💡 Resumindo:** Incluir `reads` na fórmula garante que o MaAsLin3 desconte as diferenças de profundidade de sequenciamento. Sem essa covariável, uma amostra com 50.000 reads parecerá "mais diversa" do que uma com 5.000 reads, e o modelo pode confundir esse artefato com uma diferença biológica real entre os grupos.
 
+### 4.6b Configurar variáveis categóricas (Fatores) e Nível de Referência (Baselines)
+
+O R e o MaAsLin3 precisam entender quais colunas são categóricas (fatores) e qual é o grupo "controle" ou linha de base (baseline) para a comparação. 
+
+1. **Fatores:** Se uma variável contendo texto (ex: `"rupicula"`, `"epifita"`) não for explicitamente convertida em fator, o R pode lê-la como `character`. Algumas bibliotecas a interpretam de forma contínua, gerando gráficos de tendências lineares estranhos em vez de boxplots por grupo.
+2. **Nível de Referência:** Por padrão, o R ordena os níveis de forma alfabética (no caso do tratamento: `epifita` seria a referência). Para alterar o controle para `rupicula` (ou seja, avaliar `epifita vs rupicula` e `terricola vs rupicula`), usamos `relevel()`.
+
+```r
+# Converter variáveis categóricas para fator
+merged_metadata$treatment <- factor(merged_metadata$treatment)
+merged_metadata$group     <- factor(merged_metadata$group)
+merged_metadata$batch     <- factor(merged_metadata$batch)
+
+# Definir "rupicula" como nível de referência para a comparação de tratamentos
+if ("rupicula" %in% levels(merged_metadata$treatment)) {
+  merged_metadata$treatment <- relevel(merged_metadata$treatment, ref = "rupicula")
+}
+```
+
+
 ### 4.7 Agrupar por nível taxonômico (`tax_glom`)
 
 Até aqui, cada coluna da nossa tabela representa uma ASV individual (uma sequência de DNA única). São centenas ou milhares de colunas, muitas delas com contagens muito baixas (*esparsas*).
@@ -272,44 +292,79 @@ ps <- phyloseq(
 # Para outro nível, altere "Family" para o desejado (ver tabela acima)
 ps_glom <- tax_glom(ps, taxrank = "Family")
 
-# Extrair os dados agrupados para usar no MaAsLin3
-merged_seqtab_glom <- as(otu_table(ps_glom), "matrix")
+# Renomear os táxons agrupados
+# Por padrão, o tax_glom mantém a sequência de DNA representante da ASV como nome de coluna.
+# Aqui extraímos a taxonomia correspondente e criamos nomes amigáveis no formato 'Phylum__Family'.
+tax_mat <- as(tax_table(ps_glom), "matrix")
+new_names <- ifelse(
+  !is.na(tax_mat[, "Family"]),
+  paste(tax_mat[, "Phylum"], tax_mat[, "Family"], sep = "__"),
+  ifelse(
+    !is.na(tax_mat[, "Order"]),
+    paste(tax_mat[, "Phylum"], tax_mat[, "Order"], "unclassified", sep = "__"),
+    paste(tax_mat[, "Phylum"], "unclassified", sep = "__")
+  )
+)
+# Garante que os nomes sejam únicos e atribui de volta ao objeto phyloseq
+taxa_names(ps_glom) <- make.unique(new_names, sep = "_")
+
+# Extrair os dados finais limpos para usar no MaAsLin3
+final_seqtab   <- as(otu_table(ps_glom), "matrix")
 final_metadata <- as(sample_data(ps_glom), "data.frame")
 
 cat("Amostras para análise:", nrow(final_metadata), "\n")
-cat("Famílias taxonômicas:", ncol(merged_seqtab_glom), "\n")
+cat("Famílias taxonômicas:", ncol(final_seqtab), "\n")
 ```
 
-> **🔍 O que esperar:** O número de colunas (features) cairá drasticamente. Por exemplo, de ~3.000 ASVs para ~150 famílias. Isso é esperado e desejável para a modelagem.
+> **🔍 O que esperar:** O número de colunas (features) cairá drasticamente. Por exemplo, de ~3.000 ASVs para ~150 famílias. Agora, os nomes dos táxons serão legíveis (ex: `Firmicutes__Lactobacillaceae`), facilitando a análise posterior.
 
-### 4.8 Executar o MaAsLin3
+### 4.8 Executar o MaAsLin3 com seleção dinâmica de covariáveis
 
-Finalmente, rodamos o modelo. A fórmula `~ group + batch + reads` significa:
+Finalmente, rodamos o modelo. A fórmula básica desejada seria `~ group + treatment + batch + reads`. Porém, se filtrarmos os dados (ex: selecionando apenas um grupo), algumas dessas variáveis passam a ter **apenas 1 valor/nível**, o que causará o erro clássico de contrastes no R. 
 
-| Termo | Tipo | Papel no modelo |
-|-------|------|-----------------|
-| `group` | Variável de interesse | O que queremos testar (ex: líquen vs. musgo vs. mel) |
-| `batch` | Covariável de ajuste | Corrige o efeito do lote de sequenciamento |
-| `reads` | Covariável de ajuste | Corrige diferenças na profundidade de sequenciamento |
+Para tornar o script robusto, adicionamos uma etapa que remove automaticamente da fórmula qualquer preditor sem variância real:
 
 ```r
+# Definir preditores candidatos
+formula_vars <- c("group", "treatment", "batch", "reads")
+
+# Filtrar para manter apenas variáveis com variabilidade (fatores com >= 2 níveis ou numéricos)
+vars_to_keep <- sapply(formula_vars, function(v) {
+  if (!v %in% colnames(final_metadata)) return(FALSE)
+  col <- final_metadata[[v]]
+  if (is.factor(col) || is.character(col)) {
+    return(length(unique(na.omit(col))) >= 2)
+  }
+  return(TRUE)
+})
+
+vars_kept    <- formula_vars[vars_to_keep]
+vars_dropped <- formula_vars[!vars_to_keep]
+
+if (length(vars_dropped) > 0) {
+  cat("⚠️ Variáveis removidas da fórmula (apenas 1 nível):", paste(vars_dropped, collapse = ", "), "\n")
+}
+
+# Criar a string de fórmula final
+maaslin_formula <- paste("~", paste(vars_kept, collapse = " + "))
+cat("✅ Fórmula final construída:", maaslin_formula, "\n")
+
 # Executar o MaAsLin3
 maaslin_results <- maaslin3(
-  input_data = merged_seqtab_glom,
-  input_metadata = final_metadata,
-  output = output_dir,
-  formula = "~ group + batch + reads",
-  normalization = "TSS",
-  transform = "LOG",
-  min_abundance = 0.0001,
-  min_prevalence = 0.1,
-  max_significance = 0.05,
-  plot_heatmap = TRUE,
-  plot_scatter = TRUE
+  input_data       = final_seqtab,
+  input_metadata   = final_metadata,
+  output           = output_dir,
+  formula          = maaslin_formula,
+  normalization    = "TSS",
+  transform        = "LOG",
+  min_abundance    = 0.0001,
+  min_prevalence   = 0.1,
+  max_significance = 0.05
 )
 
 cat("\n>> Os resultados foram salvos no diretório:", output_dir, "\n")
 ```
+
 
 #### Detalhamento dos parâmetros
 
@@ -440,12 +495,32 @@ library(maaslin3)
 - Aumente `max_significance` para `0.1` (análise exploratória).
 - Tente agrupar em um nível taxonômico mais alto (ex: `"Order"` ou `"Phylum"` ao invés de `"Family"`).
 
+### ❌ `Error in contrasts<-` (`contrasts can be applied only to factors with 2 or more levels`)
+
+**Causa:** Uma variável categórica na fórmula tem apenas **1 nível** nos dados após os filtros aplicados (por exemplo, você filtrou apenas pelo grupo `"musgo"`, deixando a variável `group` com apenas um nível, ou todas as amostras são da `"parte_02"`, deixando `batch` com apenas um nível). O modelo linear de regressão exige variação (pelo menos dois grupos/valores diferentes) para calcular contrastes e estimar coeficientes.
+
+**Solução:**
+- A lógica de seleção de covariáveis adicionada no script na etapa 8a já faz esse descarte dinâmico automaticamente, excluindo preditores constantes e mostrando alertas como: `⚠️ Variáveis removidas da fórmula (apenas 1 nível): group`.
+- Se você quiser realizar a comparação entre tratamentos para o grupo `"musgo"`, a fórmula gerada automaticamente será `~ treatment + batch + reads`. Não é necessário alterar a fórmula manualmente!
+
+### ⚠️ O gráfico gerou tendências lineares (linhas) para variáveis de grupos discretos
+
+**Causa:** A coluna de agrupamento experimental (ex: `treatment`) foi lida como `character` ou `numeric`, fazendo com que o MaAsLin3 assumisse que a variável é contínua e realizasse uma regressão com linha de tendência.
+
+**Solução:**
+- Certifique-se de que a etapa **6b** de conversão para fatores está habilitada no script:
+  ```r
+  merged_metadata$treatment <- factor(merged_metadata$treatment)
+  ```
+  Isso instrui o R a tratar os valores como grupos categóricos, forçando o MaAsLin3 a desenhar boxplots/beeswarms em vez de linhas.
+
 ### ⚠️ O script roda mas os resultados parecem estranhos
 
 **Verificações recomendadas:**
 - Confirme que os nomes das amostras nos metadados batem exatamente com os nomes das linhas na tabela de ASVs (`rownames`). Diferenças de maiúsculas/minúsculas ou espaços extras causam problemas silenciosos.
 - Verifique se a coluna `group` nos metadados contém os valores corretos (sem typos).
 - Inspecione a tabela de metadados mesclada com `head(merged_metadata)` e `str(merged_metadata)` para confirmar que `batch` e `reads` foram adicionados corretamente.
+
 
 ---
 
