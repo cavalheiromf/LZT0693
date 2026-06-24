@@ -144,10 +144,10 @@ Apenas dois links simbólicos precisam ser criados manualmente antes de iniciar 
 
 ```bash
 # 1. Dados brutos de sequenciamento (FASTQ)
-ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/data data
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/data data
 
 # 2. Banco de dados taxonômico SILVA
-ln -s /home/cursos/LCoutinho202604/data_shared/aula_02/databases databases
+ln -s /home/cursos/LCoutinho202604/data_shared/aula_03/databases databases
 ```
 
 O restante da estrutura é gerado automaticamente durante o pipeline:
